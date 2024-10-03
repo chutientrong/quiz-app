@@ -1,0 +1,22 @@
+version: '3'
+services:
+  api-gateway:
+    build: ./services/api-gateway
+    ports:
+      - "3000:3000"
+  user-service:
+    build: ./services/user-service
+    ports:
+      - "3001:3000"
+  quiz-service:
+    build: ./services/quiz-service
+    ports:
+      - "3002:3000"
+  game-session-service:
+    build: ./services/game-session-service
+    ports:
+      - "3003:3000"
+  leaderboard-service:
+    build: ./services/leaderboard-service
+    ports:
+      - "3004:3000"
