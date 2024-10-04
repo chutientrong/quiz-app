@@ -1,6 +1,7 @@
 # compiled output
 /dist
 /node_modules
+/build
 
 # Logs
 logs
@@ -34,21 +35,22 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# General .env files (this should be after specific .env files)
-*/.env
+# dotenv environment variable files
 .env
-*/.env.deployment.example
-.env.development.example
-/test
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
 
-terraform/.terraform
-terraform/terraform.lock.hcl
-terraform/.terraform.tfstate
-terraform/.terraform.tfstate.backup
+# temp directory
+.temp
+.tmp
 
-.vscode/*
-**/docker-data
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
 
-# Ignore all file in sql folder
-sql/*
-*.sql
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

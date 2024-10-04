@@ -1,22 +1,114 @@
-version: '3'
+version: '3.9'
+
 services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  # PostgreSQL for user-service
+  user-db:
+    image: postgres:13
+    container_name: user-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: user_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db_data/user-db:/var/lib/postgresql/data
+
+  # PostgreSQL for quiz-service
+  quiz-db:
+    image: postgres:13
+    container_name: quiz-db
+    environment:
+      POSTGRES_USER: quiz
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: quiz_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./db_data/quiz-db:/var/lib/postgresql/data
+
   api-gateway:
-    build: ./services/api-gateway
+    build:
+      context: .
+      dockerfile: ./apps/api-gateway/Dockerfile
+    container_name: api-gateway
     ports:
       - "3000:3000"
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+
   user-service:
-    build: ./services/user-service
+    build:
+      context: .
+      dockerfile: ./apps/user-service/Dockerfile
+    container_name: user-service
     ports:
-      - "3001:3000"
+      - "3001:3001"
+    depends_on:
+      - rabbitmq
+      - user-db
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      DATABASE_URL: postgres://user:password@user-db:5432/user_db
+
   quiz-service:
-    build: ./services/quiz-service
+    build:
+      context: .
+      dockerfile: ./apps/quiz-service/Dockerfile
+    container_name: quiz-service
     ports:
-      - "3002:3000"
-  game-session-service:
-    build: ./services/game-session-service
+      - "3002:3002"
+    depends_on:
+      - rabbitmq
+      - quiz-db
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      DATABASE_URL: postgres://quiz:password@quiz-db:5432/quiz_db
+
+  question-service:
+    build:
+      context: .
+      dockerfile: ./apps/question-service/Dockerfile
+    container_name: question-service
     ports:
-      - "3003:3000"
-  leaderboard-service:
-    build: ./services/leaderboard-service
+      - "3003:3003"
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+
+  game-service:
+    build:
+      context: .
+      dockerfile: ./apps/game-service/Dockerfile
+    container_name: game-service
     ports:
-      - "3004:3000"
+      - "3004:3004"
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: ./apps/notification-service/Dockerfile
+    container_name: notification-service
+    ports:
+      - "3005:3005"
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
